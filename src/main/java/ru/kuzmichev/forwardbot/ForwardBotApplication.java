@@ -1,12 +1,23 @@
 package ru.kuzmichev.forwardbot;
 
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
+import org.telegram.telegrambots.ApiContextInitializer;
+import org.telegram.telegrambots.TelegramBotsApi;
+import org.telegram.telegrambots.exceptions.TelegramApiRequestException;
+import ru.kuzmichev.forwardbot.telegram.Bot;
 
-@SpringBootApplication
 public class ForwardBotApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ForwardBotApplication.class, args);
+		ApiContextInitializer.init();
+		ApplicationContext context = SpringApplication.run(MainConfig.class, args);
+		TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
+		Bot customBot = context.getBean(Bot.class);
+		try {
+			telegramBotsApi.registerBot(customBot);
+		} catch (TelegramApiRequestException e) {
+			e.printStackTrace();
+		}
 	}
 }
