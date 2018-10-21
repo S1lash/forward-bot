@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface TelegramVkChatMapRepository extends CrudRepository<TelegramVkChatMap, Long> {
     List<TelegramVkChatMap> findAllByTelegramChatId(long telegramChatId);
+    TelegramVkChatMap findDistinctFirstByVkUserId(long userId);
 }
