@@ -30,7 +30,7 @@ repositories {
 
 dependencies {
 	compile 'com.google.code.gson:gson:2.8.5'
-	compile 'com.vk.api:sdk:0.5.13-SNAPSHOT'
+	compile 'com.vk.api:sdk:0.5.14-SNAPSHOT'
 	compile 'com.google.guava:guava:14.0.1'
 	compile 'org.apache.commons:commons-collections4:4.1'
 	compile 'commons-io:commons-io:2.5'
