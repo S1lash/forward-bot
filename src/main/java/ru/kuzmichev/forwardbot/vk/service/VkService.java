@@ -193,18 +193,30 @@ public class VkService {
         return chatInfos;
     }
 
-    public boolean addUserToVkFilter(long telegramChatId, String userId, String screenName) {
+    public AddUserToFilterResult addUserToVkFilter(long telegramChatId, String userId, String screenName) {
         try {
+            Long vkUserId = Long.parseLong(userId);
+            TelegramVkChatMap alreadyExistChatMap = getTelegramVkChatMapCache(telegramChatId).stream()
+                    .filter(m -> m.getVkUserId() == vkUserId)
+                    .findFirst()
+                    .orElse(null);
+            if (alreadyExistChatMap != null) {
+                return new AddUserToFilterResult()
+                        .setSuccess(false)
+                        .setAlreadyExist(true);
+            }
             TelegramVkChatMap filter = new TelegramVkChatMap()
                     .setTelegramChatId(telegramChatId)
-                    .setVkUserId(Long.parseLong(userId))
+                    .setVkUserId(vkUserId)
                     .setVkUserName(screenName);
             telegramVkChatMapRepository.save(filter);
             telegramVkChatMapCache.invalidate(telegramChatId);
-            return true;
+            return new AddUserToFilterResult()
+                    .setSuccess(true);
         } catch (Exception e) {
             log.error("Error during save filter for [telegramChatId={}], [userId={}]", telegramChatId, userId);
-            return false;
+            return new AddUserToFilterResult()
+                    .setSuccess(false);
         }
     }
 
@@ -230,11 +242,11 @@ public class VkService {
             CompletableFuture.runAsync(() -> {
                 try {
                     callbackUserApiLongPoolHandler.run();
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     log.error("Fatal error during logPool handling [telegramChatId={}]!", telegramChatId, e);
                 }
             });
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error("Error", e);
             return false;
         }

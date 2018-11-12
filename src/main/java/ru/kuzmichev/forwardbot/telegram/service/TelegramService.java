@@ -10,6 +10,7 @@ import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.KeyboardRow;
 import ru.kuzmichev.forwardbot.telegram.Bot;
+import ru.kuzmichev.forwardbot.vk.dto.AddUserToFilterResult;
 import ru.kuzmichev.forwardbot.vk.dto.ChatInfo;
 import ru.kuzmichev.forwardbot.vk.dto.VkAuthResponse;
 import ru.kuzmichev.forwardbot.vk.service.VkService;
@@ -106,10 +107,12 @@ public class TelegramService {
             String[] addUserFilterData = callbackQuery.getData().split(":");
             String userId = addUserFilterData[1];
             String name = addUserFilterData[2];
-            boolean result = vkService.addUserToVkFilter(telegramChatId, userId, name);
+            AddUserToFilterResult result = vkService.addUserToVkFilter(telegramChatId, userId, name);
+            String partOfMessage = result.isSuccess() ? "был" :
+                    result.isAlreadyExist() ? "уже" : "не был";
             message = String.format("Пользователь '%s' %s добавлен в ваш фильтр",
                     name,
-                    result ? "был" : "не был");
+                    partOfMessage);
         }
         return new SendMessage()
                 .setChatId(telegramChatId)
