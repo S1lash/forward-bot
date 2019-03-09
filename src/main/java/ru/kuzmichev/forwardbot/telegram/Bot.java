@@ -5,13 +5,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.telegram.telegrambots.api.methods.send.SendMediaGroup;
-import org.telegram.telegrambots.api.methods.send.SendMessage;
-import org.telegram.telegrambots.api.objects.Update;
-import org.telegram.telegrambots.api.objects.media.InputMedia;
-import org.telegram.telegrambots.api.objects.media.InputMediaPhoto;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.media.InputMedia;
+import org.telegram.telegrambots.meta.api.objects.media.InputMediaPhoto;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
+import org.telegram.telegrambots.meta.updateshandlers.SentCallback;
 import ru.kuzmichev.forwardbot.telegram.service.TelegramService;
 import ru.kuzmichev.forwardbot.vk.dto.VkMsgToTelegram;
 
@@ -38,7 +43,14 @@ public class Bot extends TelegramLongPollingBot {
         log.debug("Update from user : [{}]", update);
         SendMessage sendMessage;
         if (update.hasCallbackQuery()) {
-            sendMessage = telegramService.handleCallback(update.getCallbackQuery());
+            CallbackQuery callbackQuery = update.getCallbackQuery();
+            sendMessage = telegramService.handleCallback(callbackQuery);
+            AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
+            answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
+            answerCallbackQuery.setShowAlert(true);
+            answerCallbackQuery.setText(sendMessage.getText());
+            sendApiMethodAsync(answerCallbackQuery, new CustomAnswerCallbackQuerySentCallback());
+            return;
         } else {
             sendMessage = telegramService.handleServiceCommand(update);
         }
@@ -65,6 +77,7 @@ public class Bot extends TelegramLongPollingBot {
         if (sendMessage == null || StringUtils.isBlank(sendMessage.getChatId())) {
             return;
         }
+
         sendMessage.enableMarkdown(true);
         try {
             sendApiMethod(sendMessage);
@@ -85,8 +98,8 @@ public class Bot extends TelegramLongPollingBot {
                     .setChatId(chatId);
             //todo: caption to first
             sendMediaGroup.setMedia(photos);
-            sendMediaGroup(sendMediaGroup);
-        } catch (TelegramApiException e) {
+            this.execute(sendMediaGroup);
+        } catch (Throwable e) {
             log.debug("Exception: ", e.toString());
         }
     }
@@ -95,9 +108,13 @@ public class Bot extends TelegramLongPollingBot {
         if (message == null) {
             return;
         }
+        VkMsgToTelegram.FormattedVkMessage formattedVkMessage = message.getFormattedMessage();
         SendMessage sendMessage = new SendMessage()
-                .setText(message.getFullMessageText())
+                .setText(formattedVkMessage.getFormattedText())
                 .setChatId(message.getChatId());
+        if (formattedVkMessage.isOutbox()) {
+            sendMessage.disableNotification();
+        }
 
         List<InputMedia> mediaPhotos = message.getAttachments().stream()
                     .filter(a -> PHOTO == a.getType())
@@ -107,5 +124,27 @@ public class Bot extends TelegramLongPollingBot {
 
         sendMsg(sendMessage);
         sendPhotos(message.getChatId(), mediaPhotos);
+    }
+
+    private static class CustomAnswerCallbackQuerySentCallback implements SentCallback<Boolean> {
+
+        public CustomAnswerCallbackQuerySentCallback() {
+
+        }
+
+        @Override
+        public void onResult(BotApiMethod<Boolean> method, Boolean response) {
+
+        }
+
+        @Override
+        public void onError(BotApiMethod<Boolean> method, TelegramApiRequestException apiException) {
+
+        }
+
+        @Override
+        public void onException(BotApiMethod<Boolean> method, Exception exception) {
+
+        }
     }
 }

@@ -1,8 +1,8 @@
 package ru.kuzmichev.forwardbot.vk.dto;
 
+import lombok.Data;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -15,7 +15,8 @@ import static ru.kuzmichev.forwardbot.vk.dto.AttachmentType.UNSUPPORTED;
 @Setter
 @Accessors(chain = true)
 public class VkMsgToTelegram {
-    public static final String FROM = "От:";
+    public static final String INBOX = "От:";
+    public static final String OUTBOX = "Кому:";
     public static final String UNSUPPORTED_ATTACHMENTS = "Неподдерживаемые вложения:";
     public static final String NEW_LINE = "\n";
     public static final String SPACE = " ";
@@ -27,16 +28,18 @@ public class VkMsgToTelegram {
     private String text;
     private List<Attachment> attachments = new ArrayList<>();
     private long chatId;
+    private boolean outbox;
 
-    public String getFullMessageText() {
-        return getFrom() +
-                getText() +
-                getUnsupportedAttachments();
+    public FormattedVkMessage getFormattedMessage() {
+        String formattedMessage = getInfo() + getText() + getUnsupportedAttachments();
+        return new FormattedVkMessage()
+                .setFormattedText(formattedMessage)
+                .setOutbox(outbox);
     }
 
-    public String getFrom() {
+    private String getInfo() {
         StringBuilder sb = new StringBuilder()
-                .append(ITALIC).append(FROM).append(ITALIC).append(SPACE)
+                .append(ITALIC).append(outbox ? OUTBOX : INBOX).append(ITALIC).append(SPACE)
                 .append(BOLD_ITALIC).append(from).append(BOLD_ITALIC).append(NEW_LINE);
         return sb.toString();
     }
@@ -68,5 +71,12 @@ public class VkMsgToTelegram {
         return attachments.stream()
                 .filter(a -> UNSUPPORTED != a.getType())
                 .collect(toList());
+    }
+
+    @Data
+    @Accessors(chain = true)
+    public class FormattedVkMessage {
+        private boolean outbox;
+        private String formattedText;
     }
 }

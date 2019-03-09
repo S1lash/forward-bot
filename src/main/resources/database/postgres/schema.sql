@@ -20,3 +20,12 @@ CREATE TABLE telegram_vk_map
 );
 CREATE UNIQUE INDEX UNIQ_CONV_CONF ON telegram_vk_map (telegram_chat_id, vk_user_id);
 CREATE SEQUENCE seq_telegram_vk_map START 1;
+
+CREATE TABLE long_poll_params
+(
+  telegram_chat_id BIGINT NOT NULL,
+  ts BIGINT,
+  server VARCHAR(4000) NOT NULL,
+  key VARCHAR(4000) NOT NULL,
+  updated_date TIMESTAMP NOT NULL
+);

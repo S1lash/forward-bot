@@ -3,8 +3,8 @@ package ru.kuzmichev.forwardbot;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
 import org.telegram.telegrambots.ApiContextInitializer;
-import org.telegram.telegrambots.TelegramBotsApi;
-import org.telegram.telegrambots.exceptions.TelegramApiRequestException;
+import org.telegram.telegrambots.meta.TelegramBotsApi;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import ru.kuzmichev.forwardbot.telegram.Bot;
 
 public class ForwardBotApplication {

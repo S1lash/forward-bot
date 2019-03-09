@@ -10,4 +10,5 @@ import java.util.List;
 public interface TelegramVkChatMapRepository extends CrudRepository<TelegramVkChatMap, Long> {
     List<TelegramVkChatMap> findAllByTelegramChatId(long telegramChatId);
     TelegramVkChatMap findDistinctFirstByVkUserId(long userId);
+    void deleteAllByTelegramChatId(long telegramChatId);
 }

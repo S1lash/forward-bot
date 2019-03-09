@@ -1,15 +1,15 @@
 package ru.kuzmichev.forwardbot.telegram.service;
 
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.api.methods.send.SendMessage;
-import org.telegram.telegrambots.api.objects.CallbackQuery;
-import org.telegram.telegrambots.api.objects.Message;
-import org.telegram.telegrambots.api.objects.Update;
-import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import org.telegram.telegrambots.api.objects.replykeyboard.buttons.KeyboardRow;
-import ru.kuzmichev.forwardbot.telegram.Bot;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import ru.kuzmichev.forwardbot.vk.dto.AddUserToFilterResult;
 import ru.kuzmichev.forwardbot.vk.dto.ChatInfo;
 import ru.kuzmichev.forwardbot.vk.dto.VkAuthResponse;
@@ -19,10 +19,10 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
+@EnableScheduling
 public class TelegramService {
     private final String HTTP = "http";
     private final String START = "/start";
@@ -42,8 +42,8 @@ public class TelegramService {
                 .setChatId(message.getChatId());
         if (message.getText().startsWith(HTTP)) {
             VkAuthResponse authResponse = vkService.authorizeByUrl(message.getChatId(), message.getText());
-            boolean readingMessagesStarted = vkService.startReadingMessages(message.getChatId());
-            if (authResponse.isResult() && readingMessagesStarted) {
+//            boolean readingMessagesStarted = vkService.startReadingMessages(message.getChatId());
+            if (authResponse.isResult()) {
                 String userName = vkService.getUserName(update.getMessage().getChatId());
                 sendMessage.setText(String.format("'%s', поздравляю с успешным подключением!Теперь нужно настроить пересылку " +
                         "сообщений из ВК сюда. Используйте предложенные команды.", userName));
@@ -113,6 +113,7 @@ public class TelegramService {
             message = String.format("Пользователь '%s' %s добавлен в ваш фильтр",
                     name,
                     partOfMessage);
+
         }
         return new SendMessage()
                 .setChatId(telegramChatId)
